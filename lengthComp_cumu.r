@@ -1,4 +1,4 @@
-# setwd('/home/jim/Dropbox/REM/tasks/scal_lengths')
+setwd('/home/jim/Dropbox/REM/tasks/scal_lengths')
 
 # sources mseRtools.r, needed for lisread() function
 source("mseRtools.r")
@@ -207,8 +207,8 @@ for(name in names){
 write(char,file="scal_lengths_mod.dat")
 
 # read in scal_lengths files
-scal_lengths <- lisread("scal_lengths.dat")
-scal_lengths_mod <- lisread("scal_lengths_mod.dat")
+# scal_lengths <- lisread("scal_lengths.dat")
+# scal_lengths_mod <- lisread("scal_lengths_mod.dat")
 
 # write.csv(scal_lengths$lenObsProp_m2,"lenObsProp_m2.csv")
 # write.csv(scal_lengths_mod$lenObsProp_m2,"lenObsProp_m2_mod.csv")
