@@ -3,17 +3,6 @@ setwd('/home/jim/Dropbox/REM/tasks/scal_lengths')
 # sources mseRtools.r, needed for lisread() function
 source("mseRtools.r")
 
-# read in scal_lengths files
-scal_lengths <- lisread("scal_lengths.dat")
-scal_lengths_mod <- lisread("scal_lengths_mod.dat")
-
-write.csv(scal_lengths$lenObsProp_m1,"lenObsProp_m1.csv")
-write.csv(scal_lengths_mod$lenObsProp_m1,"lenObsProp_m1_mod.csv")
-
-write.csv(nObsBins,"nObsBins.csv")
-write.csv(startBins,"startBins.csv")
-write.csv(endBins,"endBins.csv")
-
 # defined copy of scal_lengths for modification
 # will be the same, except will add nObsBins, nstartBins, nendBins, and will change each length prop table
 scal_lengths_mod <- scal_lengths
