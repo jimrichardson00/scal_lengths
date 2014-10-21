@@ -5,6 +5,14 @@ source("mseRtools.r")
 
 # read in scal_lengths files
 scal_lengths <- lisread("scal_lengths.dat")
+scal_lengths_mod <- lisread("scal_lengths_mod.dat")
+
+write.csv(scal_lengths$lenObsProp_m1,"lenObsProp_m1.csv")
+write.csv(scal_lengths_mod$lenObsProp_m1,"lenObsProp_m1_mod.csv")
+
+write.csv(nObsBins,"nObsBins.csv")
+write.csv(startBins,"startBins.csv")
+write.csv(endBins,"endBins.csv")
 
 # defined copy of scal_lengths for modification
 # will be the same, except will add nObsBins, nstartBins, nendBins, and will change each length prop table
@@ -73,6 +81,8 @@ endBins <- as.data.frame(endBins)
 nObsBins <- matrix(-1,nrow=9,ncol=44)
 nObsBins <- as.data.frame(nObsBins)
 
+sf <- 1
+y <- 22
 for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
 	# current fishery
@@ -114,10 +124,11 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 		startBin_value <- ifelse(startBin > nlength_classes,-1,startBin_value)
 
 		#sets endBin as first bin to get over 1% in cumsum (working backwards)
-		endBin <- sum(cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)]) < 0.01) + 1
-		endBin <- ifelse(endBin > nlength_classes,-1,endBin)
+		endBin <- nlength_classes - sum(cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)]) < 0.01)
+		endBin <- ifelse(endBin == 0 | endBin > nlength_classes,-1,endBin)
+
 		# sets value at endBin, i.e. cumu value in first n bins
-		endBin_value <- cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)])[endBin]
+		endBin_value <- cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)])[nlength_classes - endBin + 1]
 		endBin_value <- ifelse(endBin > nlength_classes,-1,endBin_value)
 
 		# sets nObsBin as the number of bins with observations in them
@@ -138,9 +149,9 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
 			if(l == startBin){
 				scal_lengths_sf_mod[l,y] <- startBin_value
-			} else if(l == endBin){
+			} else if (l == endBin){
 				scal_lengths_sf_mod[l,y] <- endBin_value
-			} else if(l > startBin & l < endBin){
+			} else if (l > startBin & l < endBin){
 				scal_lengths_sf_mod[l,y] <- scal_lengths_sf[l,y]
 			}
 
@@ -194,3 +205,16 @@ char <- "## scal_lengths.dat using only 1 fishery and 1 survey \n"
 for(name in names){
 	char <- paste(char,"# ",name,"\n",df_to_dat(scal_lengths_mod[[name]]),sep="")
 }
+
+write(char,file="scal_lengths_mod.dat")
+
+# read in scal_lengths files
+scal_lengths <- lisread("scal_lengths.dat")
+scal_lengths_mod <- lisread("scal_lengths_mod.dat")
+
+write.csv(scal_lengths$lenObsProp_m1,"lenObsProp_m1.csv")
+write.csv(scal_lengths_mod$lenObsProp_m1,"lenObsProp_m1_mod.csv")
+
+write.csv(nObsBins,"nObsBins.csv")
+write.csv(startBins,"startBins.csv")
+write.csv(endBins,"endBins.csv")
