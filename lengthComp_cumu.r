@@ -194,16 +194,17 @@ char <- "## scal_lengths.dat using only 1 fishery and 1 survey \n"
 for(name in names){
 	char <- paste(char,"# ",name,"\n",df_to_dat(scal_lengths_mod[[name]]),sep="")
 }
-
 write(char,file="scal_lengths_mod.dat")
 
 # read in scal_lengths files
 scal_lengths <- lisread("scal_lengths.dat")
 scal_lengths_mod <- lisread("scal_lengths_mod.dat")
 
-write.csv(scal_lengths$lenObsProp_m1,"lenObsProp_m1.csv")
-write.csv(scal_lengths_mod$lenObsProp_m1,"lenObsProp_m1_mod.csv")
+# write.csv(scal_lengths$lenObsProp_m2,"lenObsProp_m2.csv")
+# write.csv(scal_lengths_mod$lenObsProp_m2,"lenObsProp_m2_mod.csv")
 
-write.csv(nObsBins,"nObsBins.csv")
-write.csv(startBins,"startBins.csv")
-write.csv(endBins,"endBins.csv")
+# write.csv(nObsBins,"nObsBins.csv")
+# write.csv(startBins,"startBins.csv")
+# write.csv(endBins,"endBins.csv")
+
+# write.csv(grid_FS,"grid_FS.csv")
