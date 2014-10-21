@@ -49,6 +49,11 @@ df_to_dat <- function(data){
 }
 
 
+# sets theshhold for which values are considered too small
+# will sum up values approaching from the top and bottom until threshhold is reached
+# current threshhold value is 1% (0.01)
+threshhold <- 0.01
+
 # sexes; male, female and combined
 sexes <- c("m","f","c")
 
@@ -77,7 +82,7 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 	# current sex
 	s <- grid_FS[sf,2]
 
-	# defines data set for current fishery, sex combination
+	# pulls data set from .dat file for each fishery, sex combination
 	scal_lengths_sf <- scal_lengths[paste("lenObsProp_",s,f,sep="")]
 	scal_lengths_sf <- as.data.frame(scal_lengths_sf)
 
@@ -101,19 +106,18 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
 	for(y in seq(from=1,to=nyears,by=1)){
 
-		# sets startBin as first bin to get over 1% in cumsum
+		# sets startBin as first bin to get over theshhold (currently 1%) in cumsum
 		# -1 if bins never get over 1% in cumsum
-		startBin <- sum(cumsum(scal_lengths_sf[,y]) < 0.01) + 1
+		startBin <- sum(cumsum(scal_lengths_sf[,y]) < threshhold) + 1
 		startBin <- ifelse(startBin > nlength_classes,-1,startBin)
 		# sets value at startBin, i.e. cumu value in first n bins
-		# -1 if bins never get over 1% in cumsum
+		# -1 if bins never get over theshhold in cumsum
 		startBin_value <- cumsum(scal_lengths_sf[,y])[startBin]
 		startBin_value <- ifelse(startBin > nlength_classes,-1,startBin_value)
 
-		#sets endBin as first bin to get over 1% in cumsum (working backwards)
-		endBin <- nlength_classes - sum(cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)]) < 0.01)
+		#sets endBin as first bin to get over theshhold (currently 1%) in cumsum (working backwards)
+		endBin <- nlength_classes - sum(cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)]) < threshhold)
 		endBin <- ifelse(endBin == 0 | endBin > nlength_classes,-1,endBin)
-
 		# sets value at endBin, i.e. cumu value in first n bins
 		endBin_value <- cumsum(scal_lengths_sf[,y][seq(from=nlength_classes,to=1,by=-1)])[nlength_classes - endBin + 1]
 		endBin_value <- ifelse(endBin > nlength_classes,-1,endBin_value)
@@ -132,18 +136,23 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 		# for each year & fishery-sex combination, writes nObsBin value to matrix endBin
 		nObsBins[sf,y] <- nObsBin
 
+		# writes new scal_lengths_sf_mod file, with values summed up on top and bottom
+		# cycles through rows (currently cycling through year and fishery-sex data set)
 		for(l in seq(from=1,to=nlength_classes,by=1)){
-
+			# if line is startBin, sets as the sum of the first 1-startBin values
 			if(l == startBin){
 				scal_lengths_sf_mod[l,y] <- startBin_value
-			} else if (l == endBin){
+			} 
+			# if line is endBin, sets as sum of the last nlength_classes - endBin values
+			else if (l == endBin){
 				scal_lengths_sf_mod[l,y] <- endBin_value
-			} else if (l > startBin & l < endBin){
+			}
+			# if startBin < l < endBin, sets as value from .dat file
+			else if (l > startBin & l < endBin){
 				scal_lengths_sf_mod[l,y] <- scal_lengths_sf[l,y]
 			}
-
+			# otherwise does not modify scal_lengths_sf_mod, which is all -1
 		}
-
 	}
 
 	# updates the lensProp tables with cumu values
