@@ -210,8 +210,8 @@ write(char,file="scal_lengths_mod.dat")
 # scal_lengths <- lisread("scal_lengths.dat")
 # scal_lengths_mod <- lisread("scal_lengths_mod.dat")
 
-# write.csv(scal_lengths$lenObsProp_m2,"lenObsProp_m2.csv")
-# write.csv(scal_lengths_mod$lenObsProp_m2,"lenObsProp_m2_mod.csv")
+# write.csv(scal_lengths$lenObsProp_f2,"lenObsProp_f2.csv")
+# write.csv(scal_lengths_mod$lenObsProp_f2,"lenObsProp_f2_mod.csv")
 
 # write.csv(nObsBins,"nObsBins.csv")
 # write.csv(startBins,"startBins.csv")
