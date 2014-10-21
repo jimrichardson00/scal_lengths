@@ -70,8 +70,6 @@ endBins <- as.data.frame(endBins)
 nObsBins <- matrix(-1,nrow=9,ncol=44)
 nObsBins <- as.data.frame(nObsBins)
 
-sf <- 1
-y <- 22
 for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
 	# current fishery
