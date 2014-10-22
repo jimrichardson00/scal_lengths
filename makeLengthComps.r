@@ -113,8 +113,10 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
               #if(f==4 & nMeas[i]>0) browser()
               nlens[fRow:lRow,i] <- nlens[fRow:lRow,i] + nMeas[i]*lens[,i]
             }
+
         }
 
+        # adds up colums so we can renormalize
         totalSampled <- colSums(nlens,na.rm=T)
 
         # renormalize back to proportions
@@ -122,10 +124,30 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
         for( i in 1:ncol(nlens) ){
             plens[,i] <- nlens[,i]/totalSampled[i]
         }
-        plens[ is.na(plens) ] <- -1
+        # replaces missing data with -1
+        plens[ is.na(plens)] <- -1
 
+        # adds table to list file
         scal_lengths[[name_sf]] <- as.data.frame(plens)
     }
+}
+
+# calculated the proportion female data set for each fishery and stores it in the list
+f <- 1
+for(f in seq(from=1,to=3,by=1)){
+
+    # names the proportion at length, year for males in data set
+    lenObsProp_m <- scal_lengths[[paste("lenObsProp_m",f,sep="")]]
+
+    # names the proportion at length, year for females in data set
+    lenObsProp_f <- scal_lengths[[paste("lenObsProp_f",f,sep="")]]
+
+    # creates a new table called PropFemale, which measures the proportion of females in a given length class, year, fishery
+    PropFemale <- lenObsProp_f/(lenObsProp_m + lenObsProp_f)
+    # replaces NA with -1, these are entries where prop_m & prop_f are zero
+    # (no fish in this length class, year, so data is missing)
+    PropFemale[is.na(PropFemale)] <- -1
+    scal_lengths[[paste("PropFemale",f,sep="")]] <- PropFemale
 }
 
 # write new scal_lengths_mod file to .dat file
@@ -155,19 +177,38 @@ char <- "## scal_lengths.dat using only 1 fishery and 1 survey
 # lenLastYear
 44 44 44 \n"
 
+# adds proportion for length class & year by sex, fishery to char for writing
+# cycles through each sex-fishery combination
 for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
+    # sets the sex s and fishery f from grid
     s <- grid_FS[sf,"sex"]
     f <- grid_FS[sf,"fishery"]
 
+    # sets name to obtain table for sex, fishery combo
     name_sf <- paste("lenObsProp_",s,f,sep="")
 
+    # pastes table for sex, fishery combo into char
     char <- paste(char,"# ",name_sf,"\n",df_to_dat(scal_lengths[[name_sf]]),sep="")
 
 }
 
+# adds proportion female for length class and year, by fishery to char for writing
+# cycles through fisheries
+for(f in seq(from=1,to=3,by=1)){
+
+    # sets name to obtain prop female table for fishery
+    name_f <- paste("PropFemale",f,sep="")
+
+    # pasters prop female table into char
+    char <- paste(char,"# ",name_f,"\n",df_to_dat(scal_lengths[[name_f]]),sep="")
+
+}
+
+# writes char to file, scal_lengths2.dat
 write(char,file="scal_lengths2.dat")
 
+# reads in scal_lengths, scal_lenths2 dat files to compare them
 scal_lengths <- lisread("scal_lengths.dat")
 scal_lengths2 <- lisread("scal_lengths2.dat")
 
