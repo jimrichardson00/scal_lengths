@@ -9,6 +9,9 @@ NumberMaleMeasured <- read.table("NumberMaleMeasured.txt",header=TRUE)
 NumberFemaleMeasured <- read.table("NumberFemaleMeasured.txt",header=TRUE)
 NumberCombinedMeasured <- read.table("NumberCombinedMeasured.txt",header=TRUE)
 
+# pulls out names from NumberCombinedMeasured, only one with names for some reason
+names <- names(NumberCombinedMeasured)
+
 # reads in Number(sex)Measured_copy.txt
 NumberMaleMeasured_copy <- read.table("NumberMaleMeasured copy.txt",header=TRUE)
 NumberFemaleMeasured_copy <- read.table("NumberFemaleMeasured copy.txt",header=TRUE)
@@ -19,14 +22,12 @@ NumberMaleMeasured[,2] <- NumberMaleMeasured_copy[,2]
 NumberFemaleMeasured[,2] <- NumberFemaleMeasured_copy[,2]
 NumberCombinedMeasured[,2] <- NumberCombinedMeasured_copy[,2]
 
-# defines names
-allNames <- c("RV_4VWX", "HS", "LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")
 # sets names for each data set
-names(NumberMaleMeasured) <- allNames
-names(NumberFemaleMeasured) <- allNames
-names(NumberCombinedMeasured) <- allNames
+names(NumberMaleMeasured) <- names
+names(NumberFemaleMeasured) <- names
+names(NumberCombinedMeasured) <- names
 
 # writes new data sets to .txt file
-write(paste(df_to_dat(c("Year",allNames)),df_to_dat(NumberMaleMeasured),sep=""),'NumberMaleMeasured.txt')
-write(paste(df_to_dat(c("Year",allNames)),df_to_dat(NumberFemaleMeasured),sep=""),'NumberFemaleMeasured.txt')
-write(paste(df_to_dat(c("Year",allNames)),df_to_dat(NumberCombinedMeasured),sep=""),'NumberCombinedMeasured.txt')
+write(paste(df_to_dat(names),df_to_dat(NumberMaleMeasured),sep=""),'NumberMaleMeasured.txt')
+write(paste(df_to_dat(names),df_to_dat(NumberFemaleMeasured),sep=""),'NumberFemaleMeasured.txt')
+write(paste(df_to_dat(names),df_to_dat(NumberCombinedMeasured),sep=""),'NumberCombinedMeasured.txt')
