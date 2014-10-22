@@ -167,3 +167,11 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 }
 
 write(char,file="scal_lengths2.dat")
+
+scal_lengths <- lisread("scal_lengths.dat")
+scal_lengths2 <- lisread("scal_lengths2.dat")
+
+# check that the code is doing the right thing
+for(name in names(scal_lengths)){
+    print(paste(name," difference = ",norm(as.matrix(scal_lengths[[name]]) - as.matrix(scal_lengths2[[name]]),type="f"),sep=""))
+}
