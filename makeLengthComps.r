@@ -1,5 +1,5 @@
 # sets working directory
-setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
 # sources mseRtools.r, needed for lisread function()
 source("mseRtools.r")
@@ -138,9 +138,10 @@ for(f in seq(from=1,to=3,by=1)){
 
     # names the proportion at length, year for males in data set
     lenObsProp_m <- scal_lengths[[paste("lenObsProp_m",f,sep="")]]
-
+    lenObsProp_m[lenObsProp_m == -1] <- NA
     # names the proportion at length, year for females in data set
     lenObsProp_f <- scal_lengths[[paste("lenObsProp_f",f,sep="")]]
+    lenObsProp_f[lenObsProp_f == -1] <- NA
 
     # creates a new table called PropFemale, which measures the proportion of females in a given length class, year, fishery
     PropFemale <- lenObsProp_f/(lenObsProp_m + lenObsProp_f)
@@ -216,3 +217,5 @@ scal_lengths2 <- lisread("scal_lengths2.dat")
 for(name in names(scal_lengths)){
     print(paste(name," difference = ",norm(as.matrix(scal_lengths[[name]]) - as.matrix(scal_lengths2[[name]]),type="f"),sep=""))
 }
+
+write.csv(scal_lengths2[['PropFemale1']],"PropFemale1.csv")
