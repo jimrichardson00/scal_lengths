@@ -1,4 +1,5 @@
-setwd('/home/jim/Dropbox/REM/tasks/scal_lengths')
+# sets working directory
+# setwd('/home/jim/Dropbox/REM/tasks/scal_lengths')
 
 # sources mseRtools.r, needed for lisread() function
 source("mseRtools.r")
