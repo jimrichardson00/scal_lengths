@@ -1,5 +1,8 @@
 # data.frame to .dat file function
 df_to_dat <- function(data){
+
+	# convert data to data.frame, if something else (matrix?)
+	data <- as.data.frame(data)
 	
 	# start with empty string
 	char <- ""
