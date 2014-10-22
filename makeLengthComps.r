@@ -1,3 +1,7 @@
+scal_lengths / makeLengthComps.r
+jimrichardson00jimrichardson00 37 minutes ago new branch, modifying makeLengthComps.r to include table that contain…
+1 contributor
+231 lines (181 sloc)  6.453 kb RawBlameHistory  
 # sets working directory
 setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
