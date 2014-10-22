@@ -41,8 +41,59 @@ scal_lengths <- list()
 # sexes; male, female and combined
 sexes <- c("m","f","c")
 
-# fisheries; commercial fishery, RV survey, halibut survey
-fisheries <- c(1,2,3)
+# fisheries; all
+fisheries <- allNames
+
+# years: from 1 to 44 (1970-2013)
+years <- seq(from=1,to=44,by=1)
+
+# length classes: from 1-54 (varies by fishery)
+lengths <- seq(from=1,to=54,by=1)
+
+grid <- expand.grid(fisheries,sexes,years,lengths)
+grid <- as.data.frame(grid)
+names(grid) <- c("fisheries","sexes","years","lengths")
+
+grid$Prop_fsyl <- rep(NA,nrow(grid))
+grid$Total_fsy <- rep(NA,nrow(grid))
+
+nrow(grid)
+
+v <- 1
+l <- 36
+for(v in seq(from=1,to=nrow(grid),by=1)){
+
+    f <- as.character(grid[v,"fisheries"])
+    s <- as.character(grid[v,"sexes"])
+    y <- grid[v,"years"]
+    l <- grid[v,"lengths"]
+
+    # set sample
+    if(s == "m"){
+        samples <- samples_m
+    } else if (s == "f"){
+        samples <- samples_f
+    } else if (s == "c"){
+        samples <- samples_c
+    }
+
+    f_name <- grep(f,names(lisread(paste("lengthComps_",s,".txt",sep=""))),value=TRUE)
+
+    lenComps_fs <- lisread(paste("lengthComps_",s,".txt",sep=""))[[f_name]]
+
+
+    if(l > nrow(lenComps_fs) | y > ncol(lenComps_fs)){
+        grid[v,"Prop_fsyl"] <- NA
+        grid[v,"Total_fsy"] <- NA
+    } else {
+        grid[v,"Prop_fsyl"] <- lenComps_fs[l,y]
+        grid[v,"Total_fsy"] <- samples[y,f]
+    }
+
+}
+
+# /////////////////////////////////////////////////
+
 
 # define expanded grid (each fishery, sex combination)
 grid_FS <- expand.grid(fisheries,sexes)
@@ -125,6 +176,9 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
         plens[ is.na(plens) ] <- -1
 
         scal_lengths[[name_sf]] <- as.data.frame(plens)
+
+        scal _lengths[[paste("nlens_",s,)]] nlens
+
     }
 }
 
