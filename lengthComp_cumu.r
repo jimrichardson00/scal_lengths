@@ -3,12 +3,12 @@ setwd('/home/jim/Dropbox/REM/tasks/scal_lengths')
 # sources mseRtools.r, needed for lisread() function
 source("mseRtools.r")
 
-# reads in scal_lengths.dat
-scal_lengths <- lisread("scal_lengths.dat")
+# reads in scal_lengths2.dat
+scal_lengths2 <- lisread("scal_lengths2.dat")
 
-# defined copy of scal_lengths for modification
+# defined copy of scal_lengths2 for modification
 # will be the same, except will add nObsBins, nstartBins, nendBins, and will change each length prop table
-scal_lengths_mod <- scal_lengths
+scal_lengths_mod <- scal_lengths2
 
 # sources df_to_dat.r, needed for df_to_dat function
 source("df_to_dat.r")
@@ -47,7 +47,7 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 	s <- grid_FS[sf,2]
 
 	# pulls data set from .dat file for each fishery, sex combination
-	scal_lengths_sf <- scal_lengths[paste("lenObsProp_",s,f,sep="")]
+	scal_lengths_sf <- scal_lengths2[paste("lenObsProp_",s,f,sep="")]
 	scal_lengths_sf <- as.data.frame(scal_lengths_sf)
 
 	# number of years for current fishery, sex combination (always 44)
@@ -61,8 +61,8 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 	scal_lengths_sf_mod <- as.data.frame(scal_lengths_sf_mod)
 
 	# firstBin and lastBin
-	firstBin <- scal_lengths$firstBin[f]
-	lastBin <- scal_lengths$lastBin[f]
+	firstBin <- scal_lengths2$firstBin[f]
+	lastBin <- scal_lengths2$lastBin[f]
 
 	# lenFirstYear and lenLastYear
 	lenFirstYear <- scal_lengths_sf$lenFirstYear[f]
@@ -129,7 +129,7 @@ scal_lengths_mod$nObsBins <- nObsBins
 scal_lengths_mod$startBins <- startBins
 scal_lengths_mod$endBins <- endBins
 
-# names of new scal_lengths file written out in order
+# names of new scal_lengths2 file written out in order
 names <- c("nLenSeries", 
 "nLenBins", 
 "firstBin", 
@@ -161,17 +161,33 @@ names <- c("nLenSeries",
 "lenObsProp_c3")
 
 # write new scal_lengths_mod file to .dat file
-char <- "## scal_lengths.dat using only 1 fishery and 1 survey \n"
+char <- "## scal_lengths2.dat using only 1 fishery and 1 survey \n"
+
+# add data set from each fishery-sex combo
 for(name in names){
 	char <- paste(char,"# ",name,"\n",df_to_dat(scal_lengths_mod[[name]]),sep="")
 }
+
+# adds proportion female for length class and year, by fishery to char for writing
+# cycles through fisheries
+for(f in seq(from=1,to=3,by=1)){
+
+    # sets name to obtain prop female table for fishery
+    name_f <- paste("PropFemale",f,sep="")
+
+    # pasters prop female table into char
+    char <- paste(char,"# ",name_f,"\n",df_to_dat(scal_lengths2[[name_f]]),sep="")
+
+}
+
+# writes char to scal_lengths_mod.dat
 write(char,file="scal_lengths_mod.dat")
 
-# read in scal_lengths files
+# read in scal_lengths2 files
 # scal_lengths <- lisread("scal_lengths.dat")
-# scal_lengths_mod <- lisread("scal_lengths_mod.dat")
+scal_lengths_mod <- lisread("scal_lengths_mod.dat")
 
-# write.csv(scal_lengths$lenObsProp_f2,"lenObsProp_f2.csv")
+# write.csv(scal_lengths2$lenObsProp_f2,"lenObsProp_f2.csv")
 # write.csv(scal_lengths_mod$lenObsProp_f2,"lenObsProp_f2_mod.csv")
 
 # write.csv(nObsBins,"nObsBins.csv")
