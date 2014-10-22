@@ -16,10 +16,11 @@ NumberMaleMeasured[,2] <- NumberMaleMeasured_copy[,2]
 NumberFemaleMeasured[,2] <- NumberFemaleMeasured_copy[,2]
 NumberCombinedMeasured[,2] <- NumberCombinedMeasured_copy[,2]
 
-write.table(NumberMaleMeasured,'NumberMaleMeasured.txt')
-write.table(NumberFemaleMeasured,'NumberFemaleMeasured.txt')
-write.table(NumberCombinedMeasured,'NumberCombinedMeasured.txt')
+allNames <- c("RV_4VWX", "HS", "LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")
+names(NumberMaleMeasured) <- allNames
+names(NumberFemaleMeasured) <- allNames
+names(NumberCombinedMeasured) <- allNames
 
-
-
-
+write(paste(df_to_dat(c("Year",allNames)),df_to_dat(NumberMaleMeasured),sep=""),'NumberMaleMeasured.txt')
+write(paste(df_to_dat(c("Year",allNames)),df_to_dat(NumberFemaleMeasured),sep=""),'NumberFemaleMeasured.txt')
+write(paste(df_to_dat(c("Year",allNames)),df_to_dat(NumberCombinedMeasured),sep=""),'NumberCombinedMeasured.txt')
