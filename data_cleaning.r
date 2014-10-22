@@ -12,6 +12,6 @@ source("replace_RV_4VWX_col.r")
 # all zero (or very small)
 source("makeLengthComps.r")
 
-# take scal_lengths.dat and for each year and fishery, aggregate the top and bottom length classes so they are at least 1%
+# take scal_lengths2.dat and for each year and fishery, aggregate the top and bottom length classes so they are at least 1%
 # output the modified file as: scal_lengths_mod.dat
-source("lengthComps_cumu.r")
+source("lengthComp_cumu.r")
