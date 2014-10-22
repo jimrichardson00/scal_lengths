@@ -1,5 +1,12 @@
+# sets working directory
+setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+
+# sources mseRtools.r, needed for lisread function()
 source("mseRtools.r")
 # findInterval(x,vec) returns the index of vec containing the closest match to x
+
+# sources df_to_dat.r, needed for df_to_dat function
+source("df_to_dat.r")
 
 # The following names should be used consistently throughout the various data files,
 # ADMB, and R code: 
@@ -9,21 +16,9 @@ source("mseRtools.r")
 allNames <- c("RV_4VWX", "HS", "LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")
 
 # The original length comps all had different dimensions, so these give
-# the corresponding start rows in the final 54 x 44 matrix. The final matrix
-# rows (1:54) correspond to 5-cm length bins seq(from=11,to=276,by=5).
+# the corresponding start rows in the final 54 x 44 matrix
 firstRow <- c(2,5,1,1,1,1)
 lastRow  <- c(36,42,54,54,54,54)
-
-# Pool length comps across fisheries:
-#   i. first re-scale back up to original samples, pal*numberMeasured 
-#   ii. sum numbers measured in each length class over fisheries
-#  iii. get the total sample size
-#   iv. re-normalize length comps back to proportions-at-length
-
-# Read the length comp files
-lengths_m <- lisread("lengthComps_m.txt",quiet=T)
-lengths_f <- lisread("lengthComps_f.txt",quiet=T)
-lengths_c <- lisread("lengthComps_c.txt",quiet=T)
 
 # Read the numbers measured
 samples_m <- read.table("NumberMaleMeasured.txt",    header=T)
@@ -35,52 +30,140 @@ names(samples_m) <- c("Year",allNames)
 names(samples_f) <- c("Year",allNames)
 names(samples_c) <- c("Year",allNames)
 
-# Settings to format and output aggregated data
-# indices of the fisheries to sum over in aggregating length comps
-idxFisheries <- c(3,4,6)
-samples      <- samples_c      # SET SAMPLES
-outFile      <- "plens_c.txt"  # SET OUTPUT FILE
+# The original length comps all had different dimensions, so these give
+# the corresponding start rows in the final 54 x 44 matrix
+firstRow <- c(2,5,1,1,1,1)
+lastRow  <- c(36,42,54,54,54,54)
 
-# The ADMB format is m for all fisheries, f for all fisheries, 
-# and c for all fisheries
-idxNames <- allNames(idxFisheries)
-nlens    <- matrix(0,nrow=54,ncol=nrow(samples))
-for( f in idxFisheries )
-{
-    # get number measured for all years in this fishery
-    nMeas <- samples[ ,allNames[f] ]
-    # get the pal for this fishery: SET LENGTH DATA!!
-    lens  <- lengths_c[[f]]
-    # get the dimensions
-    fRow  <- firstRow[f]
-    lRow  <- lastRow[f]
+# creates empty list, scal_length, will write this to .dat file
+scal_lengths <- list()
 
-    # find the row/col indices of missing values
-    idxNA <- which( lens==-1, arr.ind=T )
-    # convert -1 to NA
-    lens[ idxNA ] <- NA
-#browser()
-    # multiply props and nMeas to get totals measured
-    # by length and accumulate over fisheries
-    for( i in 1:ncol(lens) )
-    {
-      #if(f==4 & nMeas[i]>0) browser()
-      nlens[fRow:lRow,i] <- nlens[fRow:lRow,i] + nMeas[i]*lens[,i]
+# sexes; male, female and combined
+sexes <- c("m","f","c")
+
+# fisheries; commercial fishery, RV survey, halibut survey
+fisheries <- c(1,2,3)
+
+# define expanded grid (each fishery, sex combination)
+grid_FS <- expand.grid(fisheries,sexes)
+names(grid_FS) <- c("fishery","sex")
+
+for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
+
+    s <- grid_FS[sf,"sex"]
+    f <- grid_FS[sf,"fishery"]
+
+    name_sf <- paste("lenObsProp_",s,f,sep="")
+
+    lengths <- lisread(paste("lengthComps_",s,".txt",sep=""))
+
+    # set sample
+    if(s == "m"){
+        samples <- samples_m
+    }
+    else if (s == "f"){
+        samples <- samples_f
+    }
+    else if (s == "c"){
+        samples <- samples_c
+    }
+
+    # cycles through fisheries
+    if(f == 2){
+        scal_lengths[[name_sf]] <- lengths[[1]]
+    }
+    else if (f == 3){
+        scal_lengths[[name_sf]] <- lengths[[2]]
+    }
+    else if (f == 1){
+
+        # Pool length comps across fisheries:
+        #   i. first re-scale back up to original samples, pal*numberMeasured 
+        #   ii. sum numbers measured in each length class over fisheries
+        #  iii. get the total sample size
+        #   iv. re-normalize length comps back to proportions-at-length
+
+        # Settings to format and output aggregated data
+        # indices of the fisheries to sum over in aggregating length comps
+        idxFisheries <- c(3,4,6)
+
+        # The ADMB format is m for all fisheries, f for all fisheries, 
+        # and c for all fisheries
+        idxNames <- allNames(idxFisheries)
+        nlens    <- matrix(0,nrow=54,ncol=nrow(samples))
+        for( idxF in idxFisheries )
+        {
+            # get number measured for all years in this fishery
+            nMeas <- samples[ ,allNames[idxF] ]
+            # get the pal for this fishery: SET LENGTH DATA!!
+            lens  <- lengths[[idxF]]
+            # get the dimensions
+            fRow  <- firstRow[idxF]
+            lRow  <- lastRow[idxF]
+
+            # find the row/col indices of missing values
+            idxNA <- which( lens==-1, arr.ind=T )
+            # convert -1 to NA
+            lens[ idxNA ] <- NA
+            #browser()
+            # multiply props and nMeas to get totals measured
+            # by length and accumulate over fisheries
+            for( i in 1:ncol(lens) )
+            {
+              #if(f==4 & nMeas[i]>0) browser()
+              nlens[fRow:lRow,i] <- nlens[fRow:lRow,i] + nMeas[i]*lens[,i]
+            }
+        }
+
+        totalSampled <- colSums(nlens,na.rm=T)
+
+        # renormalize back to proportions
+        plens        <- matrix(NA,nrow(nlens),ncol(nlens))
+        for( i in 1:ncol(nlens) ){
+            plens[,i] <- nlens[,i]/totalSampled[i]
+        }
+        plens[ is.na(plens) ] <- -1
+
+        scal_lengths[[name_sf]] <- as.data.frame(plens)
     }
 }
-# get totals sampled and compared to nMeas - these should match
-# if the above code worked
 
-totalSampled <- colSums(nlens,na.rm=T)
+# write new scal_lengths_mod file to .dat file
+char <- "## scal_lengths.dat using only 1 fishery and 1 survey
+# nLenSeries
+3
+# nLenBins
+54
+# firstBin
+1 2 5
+# lastBin
+54 36 42
+# binSize
+5
+# sizeLimit
+81 81 81
+# lenIndex
+1 2 3
+# lenLikeWeight
+1 1 1
+# minLen
+11 11 11
+# maxLen
+276 276 276
+# lenFirstYear
+19 1 29
+# lenLastYear
+44 44 44 \n"
 
-# renormalize back to proportions
-plens        <- matrix(NA,nrow(nlens),ncol(nlens))
-for( i in 1:ncol(nlens) )
-  plens[,i] <- nlens[,i]/totalSampled[i]
-plens[ is.na(plens) ] <- -1
+for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
-write( x=t(plens), file=outFile, ncolumns=ncol(nlens) )
+    s <- grid_FS[sf,"sex"]
+    f <- grid_FS[sf,"fishery"]
 
+    name_sf <- paste("lenObsProp_",s,f,sep="")
 
+    char <- paste(char,"# ",name_sf,"\n",df_to_dat(scal_lengths[[name_sf]]),sep="")
 
+}
 
+write(char,file="scal_lengths2.dat")
