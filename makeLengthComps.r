@@ -1,5 +1,5 @@
 # sets working directory
-setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
 # sources mseRtools.r, needed for lisread function()
 source("mseRtools.r")
@@ -241,5 +241,3 @@ scal_lengths2 <- lisread("scal_lengths2.dat")
 for(name in names(scal_lengths)){
     print(paste(name,", difference in matrix norm = ",norm(as.matrix(scal_lengths[[name]]) - as.matrix(scal_lengths2[[name]]),type="f"),sep=""))
 }
-
-write.csv(scal_lengths2[['PropFemale1']],"PropFemale1.csv")
