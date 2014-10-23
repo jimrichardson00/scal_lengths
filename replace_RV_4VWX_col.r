@@ -1,5 +1,5 @@
 # sets working directory
-setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
 # imports df_to_dat.r, needed for writing tables
 source("df_to_dat.r")
