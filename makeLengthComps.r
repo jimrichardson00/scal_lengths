@@ -1,5 +1,5 @@
 # sets working directory
-# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
 # sources mseRtools.r, needed for lisread function()
 source("mseRtools.r")
@@ -15,12 +15,7 @@ source("df_to_dat.r")
 # or _c
 allNames <- c("RV_4VWX", "HS", "LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")
 
-# The original length comps all had different dimensions, so these give
-# the corresponding start rows in the final 54 x 44 matrix
-firstRow <- c(2,5,1,1,1,1)
-lastRow  <- c(36,42,54,54,54,54)
-
-# Read the numbers measured
+# Read the sample data
 samples_m <- read.table("NumberMaleMeasured.txt",    header=T)
 samples_f <- read.table("NumberFemaleMeasured.txt",  header=T)
 samples_c <- read.table("NumberCombinedMeasured.txt",header=T)
@@ -29,6 +24,32 @@ samples_c <- read.table("NumberCombinedMeasured.txt",header=T)
 names(samples_m) <- c("Year",allNames)
 names(samples_f) <- c("Year",allNames)
 names(samples_c) <- c("Year",allNames)
+
+# read in the catch data
+scaHalCatch_Index_lb5_Sept152014 <- lisread("scaHalCatch_Index_lb5_ Sept152014 .dat.txt")
+# pull out the landed catch matrix
+landCatchMatrix <- scaHalCatch_Index_lb5_Sept152014[[2]]
+landCatchMatrix <- as.data.frame(landCatchMatrix)
+# set the names for the landed catch matrix
+names_cat <- "TimeStep Year X3_long.line X3_other X3_otter.trawl X4_long.line X4_other X4_otter.trawl rv4VWX rv3NPO.1 rv3NPO.2 rv3NPO.3 hal.surv ci"
+names_cat <- strsplit(names_cat," ")[[1]]
+
+# create a copy of names_cat, will relabel the names with the names from the sample data for consistency
+names_sam <- names_cat
+for(i in seq(from=1,to=length(names_cat),by=1)){
+    if(names_cat[i] == "X3_long.line"){names_sam[i] <- "LL_NAFO3_Obs"}
+    else if(names_cat[i] == "X3_otter.trawl"){names_sam[i] <- "OT_NAFO3_Obs"}
+    else if(names_cat[i] == "X4_long.line"){names_sam[i] <- "LL_NAFO4_Obs"}
+    else if(names_cat[i] == "X4_otter.trawl"){names_sam[i] <- "OT_NAFO4_Obs"}
+    else if(names_cat[i] == "rv4VWX"){names_sam[i] <- "RV_4VWX"}
+    else if(names_cat[i] == "hal.surv"){names_sam[i] <- "HS"}
+}
+
+# set new names on landCatchMatrix to be in line with the names in the sample data
+names(landCatchMatrix) <- names_sam
+
+# set missing data to NA
+landCatchMatrix[landCatchMatrix == -1] <- NA
 
 # The original length comps all had different dimensions, so these give
 # the corresponding start rows in the final 54 x 44 matrix
@@ -48,6 +69,8 @@ fisheries <- c(1,2,3)
 grid_FS <- expand.grid(fisheries,sexes)
 names(grid_FS) <- c("fishery","sex")
 
+
+sf <- 1
 for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
     s <- grid_FS[sf,"sex"]
@@ -57,25 +80,21 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
     lengths <- lisread(paste("lengthComps_",s,".txt",sep=""))
 
-    # set sample
+    # set sample according to sex
     if(s == "m"){
         samples <- samples_m
-    }
-    else if (s == "f"){
+    } else if (s == "f"){
         samples <- samples_f
-    }
-    else if (s == "c"){
+    } else if (s == "c"){
         samples <- samples_c
     }
 
     # cycles through fisheries
     if(f == 2){
         scal_lengths[[name_sf]] <- lengths[[1]]
-    }
-    else if (f == 3){
+    } else if (f == 3){
         scal_lengths[[name_sf]] <- lengths[[2]]
-    }
-    else if (f == 1){
+    } else if (f == 1){
 
         # Pool length comps across fisheries:
         #   i. first re-scale back up to original samples, pal*numberMeasured 
@@ -91,10 +110,15 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
         # and c for all fisheries
         idxNames <- allNames(idxFisheries)
         nlens    <- matrix(0,nrow=54,ncol=nrow(samples))
+
         for( idxF in idxFisheries )
         {
             # get number measured for all years in this fishery
             nMeas <- samples[ ,allNames[idxF] ]
+
+            # get catch data for all years in this fishery
+            nCatch <- landCatchMatrix[,allNames[idxF]]
+
             # get the pal for this fishery: SET LENGTH DATA!!
             lens  <- lengths[[idxF]]
             # get the dimensions
@@ -111,7 +135,7 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
             for( i in 1:ncol(lens) )
             {
               #if(f==4 & nMeas[i]>0) browser()
-              nlens[fRow:lRow,i] <- nlens[fRow:lRow,i] + nMeas[i]*lens[,i]
+              nlens[fRow:lRow,i] <- nlens[fRow:lRow,i] + nCatch[i]*nMeas[i]*lens[,i]
             }
 
         }
@@ -215,7 +239,7 @@ scal_lengths2 <- lisread("scal_lengths2.dat")
 
 # check that the code is doing the right thing
 for(name in names(scal_lengths)){
-    print(paste(name," difference = ",norm(as.matrix(scal_lengths[[name]]) - as.matrix(scal_lengths2[[name]]),type="f"),sep=""))
+    print(paste(name,", difference in matrix norm = ",norm(as.matrix(scal_lengths[[name]]) - as.matrix(scal_lengths2[[name]]),type="f"),sep=""))
 }
 
 write.csv(scal_lengths2[['PropFemale1']],"PropFemale1.csv")
