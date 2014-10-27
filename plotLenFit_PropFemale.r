@@ -3,7 +3,7 @@ setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 source("mseRtools.r")
 source("scal_globals.r")
 #source("mcmcpairs.r")
-require(MCMCpack)
+require("MCMCpack")
 
 # This rep file loading can be improved by (i) adding some time/date
 # info to the first line of the rep file, (ii) reading the first line
@@ -20,23 +20,16 @@ if( !file.exists(repFileName) )
   cat("No .rep file to import...","\n")  
 }
 
-names(repObj)
-
-plotLenFit(repObj,doType="f")
-
+# read in scal_lengths_mods
 scal_lengths_mod <- lisread("scal_lengths_mod.dat")
-head(scal_lengths_mod)
-names(scal_lengths_mod)
 
 # plotLenFit
 # Plots observed length-frequency (bars) and fitted model length-frequency
 # for each year. A separate page is generated for each fishery/survey
-plotLenFit <- function( obj, modelCheck=F, doType="f", resGear=1, png=F )
+plotLenFit_PropFemale <- function( obj, modelCheck=F, doType="f", resGear=1, png=F )
 {
   # the model uses pl_m(g)(lengths)(t)
   # data are lenObsProp_m(g)
-
-repObj$firstBin
 
   firstBin <- obj$firstBin
   lastBin  <- obj$lastBin
@@ -145,7 +138,7 @@ repObj$firstBin
   # These are the fitted len proportions.
   yLim <- NULL
   if ( is.null(yLim) )
-    yLim <- c( 0,2 )
+    yLim <- c( 0,1.1 )
 
   for ( g in 1:nGear )
   {   
@@ -155,7 +148,7 @@ repObj$firstBin
       dev.new()
     }
     
-    yLim    <- c( 0, 2 )
+    yLim    <- c( 0, 1.1 )
     sumProp <- colSums( lenObsProp[g,,], na.rm=TRUE )      
     nPanels <- obj$lenLastYear[g] - obj$lenFirstYear[g] + 1
 
@@ -214,7 +207,7 @@ repObj$firstBin
 
         tmp <- lenObsProp[g,,i]
         tmp[is.na(tmp)] <- 0.
-        cumulObs <- cumulObs + tmp
+        cumulObs <- cumulObs + tmsp
         
         tmp <- pFemale_g[[g]][,i]
         tmp[is.na(tmp)] <- 0.
@@ -255,7 +248,7 @@ repObj$firstBin
                      )
           ) 
     mtext( side=1, line=.OUTLINE1, cex=.CEXLAB, outer=TRUE, "Length class (cm)" )
-    mtext( side=2, line=2, cex=.CEXLAB, outer=TRUE, "Proportion-at-length" )
+    mtext( side=2, line=2, cex=.CEXLAB, outer=TRUE, "Proportion-Female-at-length" )
 
   }
   return( resids )
