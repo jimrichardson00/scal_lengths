@@ -207,7 +207,7 @@ plotLenFit_PropFemale <- function( obj, modelCheck=F, doType="f", resGear=1, png
 
         tmp <- lenObsProp[g,,i]
         tmp[is.na(tmp)] <- 0.
-        cumulObs <- cumulObs + tmsp
+        cumulObs <- cumulObs + tmp
         
         tmp <- pFemale_g[[g]][,i]
         tmp[is.na(tmp)] <- 0.
