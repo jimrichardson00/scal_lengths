@@ -58,7 +58,7 @@ for(i in seq(1,length(Xfit),1)){
 dens_o <- density(ObservedLengthDist)
 
 # #####################################################################
-# output to png
+# output to jpeg
 
 jpeg("Page 1.jpeg")
 page1()
@@ -79,7 +79,6 @@ dev.off()
 jpeg("Page 5.jpeg")
 page5()
 dev.off()
-
 
 # #####################################################################
 # First page
@@ -112,7 +111,6 @@ mtext("Length",side=2,line=3)
 frame()
 
 }
-
 
 # #####################################################################
 # Second page
