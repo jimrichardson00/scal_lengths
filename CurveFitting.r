@@ -1,50 +1,263 @@
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+
+library(beepr)
+
 #Curve fitting example
-curve <- function(a=.25,b=40,sig=.2,diff=0)
-{
-set.seed(5431)
+L_inf = 205
+k=0.1
+t0=0.45
+cv=0.1
 
-#detrministic age,length values
-plusGroupAge <- 30
-Linf         <- 210
-vonK         <- 0.12
+breaks <- 30
 
-detAge    <- seq(1,30,1)
-detLength <- Linf*(1.-exp(-vonK*detAge))
+# define von bert function
+Von_Bert <- function(t){
+	return(L_inf*(1-exp(-k*(t-t0))))
+}
 
-# Choose 
-Xran <- runif(n=10,min=5,max=max(Xdet))
-e    <- rnorm(n=length(Xran),mean=0,sd=sig)
-Yran<-a*Xran*exp(e-sig*sig/2)/(b+Xran)
-plot(Xran,Yran,xlim=c(0,max(Xdet)),ylim=c(0,1.5*max(Ydet)),
-		pch=19,xlab="Age",ylab="Length-at-age (cm)",
-			cex=2,bty="l")
+# need to defined this selectivity function
+selectivity <- function(t){
+	1/(1 + 1*exp(-0.5*(t - 81)))
+}
+plot(seq(0,2*81,1),selectivity(seq(0,2*81,1)),type='l')
 
-x1<-c(Xran[3:4],Xran[6:8])
-y1<-c(Yran[3:4],Yran[6:8])
-Ydet<-a*Xdet/(b+diff+Xdet)
-	lines(Xdet,Ydet,lwd=2)
-	lnL<-0
-	#for each data point
-	for(i in 1:5){
-		#get point on curve
-		ymean<-a*x1[i]/(b+diff+x1[i])
-		#min and max of x-axis (vertical) for distribution as +- X sd's from the mean
-		ymin<-ymean-2*sig*ymean;ymax<-ymean+4*sig*ymean
-		#draw vertical axis
-		lines(c(x1[i],x1[i]),c(ymin,ymax),lwd=2,col="blue")
-		
-		#x2 is just the x points
-		x2<-rep(x1[i],30)
-		#generate sequence of 30 increasing y-values
-		y<-seq(ymin,ymax,length=30)
-		#calc likelihood of each y
-		py<-dnorm(log(y),mean=log(ymean),sd=sig)
-		#add scaled likelihood to x values
-		x2<-x2+2*py
-		#plot x vs. y
-		lines(x2,y,lwd=2,col="blue")
-		
-		lnL<-lnL+log(sig)/2-1/(2*sig*sig)*(log(ymean)-log(y1[i]))^2
+# define age frequency vector
+Age <- rexp(1000,rate=0.115)
+Age <- Age[Age >= 1 & Age <= 30]
+
+# set fitted x values and y values
+Xfit <- seq(min(Age),max(Age),length=breaks)
+Yfit <- Von_Bert(Xfit)
+
+# set y limits
+Ylim <- range(Xfit,max(Von_Bert(Xfit) + 4*cv*Von_Bert(Xfit)))
+Xlim <- range(Xfit)
+
+# age histogram
+h <- hist(Age,breaks=c(0,Xfit),plot=FALSE)
+
+# calculate theoretical length distribution
+TheoreticalLengthDist <- vector()
+for(i in seq(1,length(Xfit),1)){
+	X <- Xfit[i]
+	TheoreticalLengthDist <- c(TheoreticalLengthDist,rnorm(h$counts[i]*100 + 1,mean=Von_Bert(X),sd=cv*Von_Bert(X)))
+}
+dens_t <- density(TheoreticalLengthDist)
+
+# calculate observed length
+ObservedLengthDist <- vector()
+for(i in seq(1,length(Xfit),1)){
+	X <- Xfit[i]
+	LenDis_i <- rnorm(h$counts[i]*10 + 1,mean=Von_Bert(X),sd=cv*Von_Bert(X))
+	LenSel_i <- vector()
+	for(l in LenDis_i){
+		LenSel_i <- c(LenSel_i,rep(l,floor(1000*selectivity(l))))
 	}
-	print(c(b+diff,lnL))
+	ObservedLengthDist <- c(ObservedLengthDist,LenSel_i)
+}
+dens_o <- density(ObservedLengthDist)
+
+# #####################################################################
+# output to png
+
+jpeg("Page 1.jpeg")
+page1()
+dev.off()
+
+jpeg("Page 2.jpeg")
+page2()
+dev.off()
+
+jpeg("Page 3.jpeg")
+page3()
+dev.off()
+
+jpeg("Page 4.jpeg")
+page4()
+dev.off()
+
+jpeg("Page 5.jpeg")
+page5()
+dev.off()
+
+
+# #####################################################################
+# First page
+
+page1 <- function(){
+
+layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
+
+# ---------------------------
+# top left
+
+frame()
+
+# --------------------------
+# bottom left
+
+plot(range(Xfit),range(Yfit),type='n',ylim=Ylim,xlim=Xlim,
+	xaxt="n",yaxt="n",xlab="",ylab="")
+lines(Xfit,Yfit,type='l',ylim=Ylim,xlim=Xlim,
+	xaxt="n",yaxt="n",xlab="",ylab="")
+#adds axis
+axis(1,at=pretty(Xlim),labels=pretty(Xlim),las=1)
+mtext("Age",side=1,line=2)
+axis(2,at=pretty(Ylim),labels=format(pretty(Ylim), scientific=FALSE),las=1)
+mtext("Length",side=2,line=3)
+
+# -------------------------
+# bottom right
+
+frame()
+
+}
+
+
+# #####################################################################
+# Second page
+
+page2 <- function(){
+
+layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
+
+# ---------------------------
+# top left
+
+frame()
+
+# --------------------------
+# bottom left
+
+curve()
+
+# -------------------------
+# bottom right
+
+frame()
+
+}
+
+# #####################################################################
+# Third page
+
+page3 <- function(){
+
+layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
+
+# ---------------------------
+# top left
+
+hist(Age,breaks=30,xlim=Xlim,xlab='Age',main="")
+
+# --------------------------
+# bottom left
+
+curve()
+
+# -------------------------
+# bottom right
+
+frame()
+
+}
+
+# #####################################################################
+# Fourth page
+
+page4 <- function(){
+
+layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
+
+# ---------------------------
+# top left
+
+hist(Age,breaks=30,xlim=Xlim,xlab='Age',main='')
+
+# --------------------------
+# bottom left
+
+curve()
+
+# -------------------------
+# bottom right
+
+plot(dens_t$y,dens_t$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y),lty="dashed",
+	xlab='Density',ylab='Length')
+legend("topright",c("Theoretical"),lty=c("dashed"),bty="n")
+
+}
+
+# #####################################################################
+# Fifth page
+
+page5 <- function(){
+
+layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
+
+# ---------------------------
+# top left
+
+hist(Age,breaks=30,xlim=Xlim)
+
+# --------------------------
+# bottom left
+
+curve()
+par( new=TRUE )
+plot(range(selectivity(Yfit)),range(Yfit),type="n", xaxt="n",yaxt="n", xlab="", ylab="" )
+lines(selectivity(Yfit),Yfit, xaxt="n",yaxt="n", xlab="", ylab="" )
+axis(3,at=pretty(c(0,1)),labels=pretty(c(0,1)),las=1)
+
+# -------------------------
+# bottom right
+
+plot(dens_o$y,dens_o$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y),
+	xlab='Density',ylab='Length')
+lines(dens_t$y,dens_t$x,type="l",ylim=Ylim,lty="dashed")
+legend("topright",c("Theoretical","Observed"),lty=c("dashed","solid"),bty="n")
+
+}
+
+# #####################################################################################
+
+curve <- function(){
+
+	set.seed(5431)
+
+	plot(range(Xfit),range(Yfit),type='n',ylim=Ylim,xlim=Xlim,
+		xaxt="n",yaxt="n",xlab="",ylab="")
+	lines(Xfit,Yfit,type='l',ylim=Ylim,xlim=Xlim,
+		xaxt="n",yaxt="n",xlab="",ylab="")
+
+	Xpon <- seq(from=5,to=25,length=5)
+
+	for(i in seq(from=1,to=length(Xpon),by=1)){
+
+		X <- Xpon[i]
+
+		mean <- Von_Bert(X)
+		sd <- cv*Von_Bert(X)
+		Von_Bert(X)
+		X
+
+
+		Yran <- c(mean - 4*sd, mean + 4*sd)
+		Ypon <- seq(from=min(Yran),to=max(Yran),length=30)
+
+		lines(rep(X,30),Ypon,xaxt="n",yaxt="n",xlab="",ylab="")
+
+		Ydist <- dnorm(Ypon,mean=mean,sd=sd)
+
+		lines(rep(X,30) + (X*10)*Ydist,Ypon,xaxt="n",yaxt="n",xlab="",ylab="")
+
+	}
+
+	#adds axis
+	axis(1,at=pretty(Xlim),labels=pretty(Xlim),las=1)
+	mtext("Age",side=1,line=2)
+
+	axis(2,at=pretty(Ylim),labels=format(pretty(Ylim), scientific=FALSE),las=1)
+	mtext("Length",side=2,line=3)
+
 }
