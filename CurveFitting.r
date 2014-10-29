@@ -1,12 +1,10 @@
 # setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
-library(beepr)
+# define age frequency vector
+Age <- rexp(1000,rate=0.115)
+Age <- Age[Age >= 1 & Age <= 30]
 
-#Curve fitting example
-L_inf = 205
-k=0.1
-t0=0.45
-cv=0.1
+CurveFitting <- function(L_inf=205,k=0.1,t0=0.45,cv=0.1,Age=Age){
 
 breaks <- 30
 
@@ -20,10 +18,6 @@ selectivity <- function(t){
 	1/(1 + 1*exp(-0.5*(t - 81)))
 }
 plot(seq(0,2*81,1),selectivity(seq(0,2*81,1)),type='l')
-
-# define age frequency vector
-Age <- rexp(1000,rate=0.115)
-Age <- Age[Age >= 1 & Age <= 30]
 
 # set fitted x values and y values
 Xfit <- seq(min(Age),max(Age),length=breaks)
@@ -57,28 +51,49 @@ for(i in seq(1,length(Xfit),1)){
 }
 dens_o <- density(ObservedLengthDist)
 
-# #####################################################################
-# output to jpeg
+# #####################################################################################
 
-jpeg("Page 1.jpeg")
-page1()
-dev.off()
+curve <- function(){
 
-jpeg("Page 2.jpeg")
-page2()
-dev.off()
+	set.seed(5431)
 
-jpeg("Page 3.jpeg")
-page3()
-dev.off()
+	plot(range(Xfit),range(Yfit),type='n',ylim=Ylim,xlim=Xlim,
+		xaxt="n",yaxt="n",xlab="",ylab="")
+	lines(Xfit,Yfit,type='l',ylim=Ylim,xlim=Xlim,
+		xaxt="n",yaxt="n",xlab="",ylab="")
 
-jpeg("Page 4.jpeg")
-page4()
-dev.off()
+	Xpon <- seq(from=5,to=25,length=5)
 
-jpeg("Page 5.jpeg")
-page5()
-dev.off()
+	for(i in seq(from=1,to=length(Xpon),by=1)){
+
+		X <- Xpon[i]
+
+		mean <- Von_Bert(X)
+		sd <- cv*Von_Bert(X)
+		Von_Bert(X)
+		X
+
+
+		Yran <- c(mean - 4*sd, mean + 4*sd)
+		Ypon <- seq(from=min(Yran),to=max(Yran),length=30)
+
+		lines(rep(X,30),Ypon,xaxt="n",yaxt="n",xlab="",ylab="")
+
+		Ydist <- dnorm(Ypon,mean=mean,sd=sd)
+
+		lines(rep(X,30) + (X*10)*Ydist,Ypon,xaxt="n",yaxt="n",xlab="",ylab="")
+
+	}
+
+	#adds axis
+	axis(1,at=pretty(Xlim),labels=pretty(Xlim),las=1)
+	mtext("Age",side=1,line=2)
+
+	axis(2,at=pretty(Ylim),labels=format(pretty(Ylim), scientific=FALSE),las=1)
+	mtext("Length",side=2,line=3)
+
+}
+
 
 # #####################################################################
 # First page
@@ -217,45 +232,27 @@ legend("topright",c("Theoretical","Observed"),lty=c("dashed","solid"),bty="n")
 
 }
 
-# #####################################################################################
+# #####################################################################
+# output to jpeg
 
-curve <- function(){
+jpeg("Page 1.jpeg")
+page1()
+dev.off()
 
-	set.seed(5431)
+jpeg("Page 2.jpeg")
+page2()
+dev.off()
 
-	plot(range(Xfit),range(Yfit),type='n',ylim=Ylim,xlim=Xlim,
-		xaxt="n",yaxt="n",xlab="",ylab="")
-	lines(Xfit,Yfit,type='l',ylim=Ylim,xlim=Xlim,
-		xaxt="n",yaxt="n",xlab="",ylab="")
+jpeg("Page 3.jpeg")
+page3()
+dev.off()
 
-	Xpon <- seq(from=5,to=25,length=5)
+jpeg("Page 4.jpeg")
+page4()
+dev.off()
 
-	for(i in seq(from=1,to=length(Xpon),by=1)){
-
-		X <- Xpon[i]
-
-		mean <- Von_Bert(X)
-		sd <- cv*Von_Bert(X)
-		Von_Bert(X)
-		X
-
-
-		Yran <- c(mean - 4*sd, mean + 4*sd)
-		Ypon <- seq(from=min(Yran),to=max(Yran),length=30)
-
-		lines(rep(X,30),Ypon,xaxt="n",yaxt="n",xlab="",ylab="")
-
-		Ydist <- dnorm(Ypon,mean=mean,sd=sd)
-
-		lines(rep(X,30) + (X*10)*Ydist,Ypon,xaxt="n",yaxt="n",xlab="",ylab="")
-
-	}
-
-	#adds axis
-	axis(1,at=pretty(Xlim),labels=pretty(Xlim),las=1)
-	mtext("Age",side=1,line=2)
-
-	axis(2,at=pretty(Ylim),labels=format(pretty(Ylim), scientific=FALSE),las=1)
-	mtext("Length",side=2,line=3)
+jpeg("Page 5.jpeg")
+page5()
+dev.off()
 
 }
