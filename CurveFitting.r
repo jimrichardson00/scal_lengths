@@ -1,4 +1,4 @@
-# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lenghs")
 
 library(animation)
 
@@ -29,7 +29,6 @@ Von_Bert <- function(t){
 selectivity <- function(t){
 	1/(1 + 1*exp(-0.5*(t - 81)))
 }
-plot(seq(0,2*81,1),selectivity(seq(0,2*81,1)),type='l')
 
 # set fitted x values and y values
 Xfit <- seq(min(Age),max(Age),length=breaks)
@@ -349,6 +348,6 @@ jpeg("Page 5.jpeg")
 page5()
 dev.off()
 
-saveGIF(page6())
+saveGIF(page6(),movie.name = "Page 6.gif")
 
 }
