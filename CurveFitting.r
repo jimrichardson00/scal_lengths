@@ -1,16 +1,28 @@
 # setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
-# define age frequency vector
-Age <- rexp(1000,rate=0.115)
-Age <- Age[Age >= 1 & Age <= 30]
+library(animation)
 
-CurveFitting <- function(L_inf=205,k=0.1,t0=0.45,cv=0.1,Age=Age){
+M <- 0.15
+n_age <- data.frame(age=rep(NA,30),n_age=rep(NA,30))
+n_age$age <- seq(1,30,1)
+n_age[1,"n_age"] <- 80
+for(i in seq(2,30,1)){
+	n_age[i,"n_age"] <- ceiling(n_age[i-1,"n_age"]*exp(-M))
+}
+
+CurveFitting <- function(L_INF=205,K=0.1,T0=0.45,CV=0.1,N_AGE=n_age){
 
 breaks <- 30
 
+# age
+Age <- vector()
+for(a in n_age$age){
+	Age <- c(Age,rep(n_age[a,"age"],ceiling(n_age[a,"n_age"])))
+}
+
 # define von bert function
 Von_Bert <- function(t){
-	return(L_inf*(1-exp(-k*(t-t0))))
+	return(L_INF*(1-exp(-K*(t-T0))))
 }
 
 # need to defined this selectivity function
@@ -24,17 +36,19 @@ Xfit <- seq(min(Age),max(Age),length=breaks)
 Yfit <- Von_Bert(Xfit)
 
 # set y limits
-Ylim <- range(Xfit,max(Von_Bert(Xfit) + 4*cv*Von_Bert(Xfit)))
+Ylim <- range(Xfit,max(Von_Bert(Xfit) + 4*CV*Von_Bert(Xfit)))
 Xlim <- range(Xfit)
 
 # age histogram
 h <- hist(Age,breaks=c(0,Xfit),plot=FALSE)
 
+length_dens <- function(N_AGE=n_age,both=TRUE){
+
 # calculate theoretical length distribution
 TheoreticalLengthDist <- vector()
 for(i in seq(1,length(Xfit),1)){
 	X <- Xfit[i]
-	TheoreticalLengthDist <- c(TheoreticalLengthDist,rnorm(h$counts[i]*100 + 1,mean=Von_Bert(X),sd=cv*Von_Bert(X)))
+	TheoreticalLengthDist <- c(TheoreticalLengthDist,rnorm(N_AGE[i,"n_age"]*10 + 1,mean=Von_Bert(X),sd=CV*Von_Bert(X)))
 }
 dens_t <- density(TheoreticalLengthDist)
 
@@ -42,7 +56,7 @@ dens_t <- density(TheoreticalLengthDist)
 ObservedLengthDist <- vector()
 for(i in seq(1,length(Xfit),1)){
 	X <- Xfit[i]
-	LenDis_i <- rnorm(h$counts[i]*10 + 1,mean=Von_Bert(X),sd=cv*Von_Bert(X))
+	LenDis_i <- rnorm(N_AGE[i,"n_age"]*10 + 1,mean=Von_Bert(X),sd=CV*Von_Bert(X))
 	LenSel_i <- vector()
 	for(l in LenDis_i){
 		LenSel_i <- c(LenSel_i,rep(l,floor(1000*selectivity(l))))
@@ -51,9 +65,32 @@ for(i in seq(1,length(Xfit),1)){
 }
 dens_o <- density(ObservedLengthDist)
 
+if(both == TRUE){
+
+plot(dens_o$y,dens_o$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y,0.015),
+	xlab='Density',ylab='Length')
+lines(dens_t$y,dens_t$x,type="l",ylim=Ylim,lty="dashed")
+legend("topright",c("Theoretical","Observed"),lty=c("dashed","solid"),bty="n")
+
+} else {
+
+plot(dens_t$y,dens_t$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y,0.015),
+	xlab='Density',ylab='Length',lty="dashed")
+legend("topright",c("Theoretical"),lty=c("dashed"),bty="n")
+
+}
+
+}
+
 # #####################################################################################
 
 curve <- function(){
+
+	# age
+	Age <- vector()
+	for(a in n_age$age){
+		Age <- c(Age,rep(n_age[a,"age"],ceiling(n_age[a,"n_age"])))
+	}
 
 	set.seed(5431)
 
@@ -69,7 +106,7 @@ curve <- function(){
 		X <- Xpon[i]
 
 		mean <- Von_Bert(X)
-		sd <- cv*Von_Bert(X)
+		sd <- CV*Von_Bert(X)
 		Von_Bert(X)
 		X
 
@@ -106,6 +143,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # top left
 
 frame()
+
 
 # --------------------------
 # bottom left
@@ -161,7 +199,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim,xlab='Age',main="")
+hist(Age,breaks=30,xlim=Xlim,xlab='Age',main="",ylim=range(0,300))
 
 # --------------------------
 # bottom left
@@ -185,7 +223,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim,xlab='Age',main='')
+hist(Age,breaks=30,xlim=Xlim,xlab='Age',main='',ylim=range(0,300))
 
 # --------------------------
 # bottom left
@@ -195,9 +233,7 @@ curve()
 # -------------------------
 # bottom right
 
-plot(dens_t$y,dens_t$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y),lty="dashed",
-	xlab='Density',ylab='Length')
-legend("topright",c("Theoretical"),lty=c("dashed"),bty="n")
+length_dens(N_AGE=n_age,both=FALSE)
 
 }
 
@@ -211,7 +247,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim)
+hist(Age,breaks=30,xlim=Xlim,main="",ylim=range(0,300))
 
 # --------------------------
 # bottom left
@@ -225,10 +261,68 @@ axis(3,at=pretty(c(0,1)),labels=pretty(c(0,1)),las=1)
 # -------------------------
 # bottom right
 
-plot(dens_o$y,dens_o$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y),
-	xlab='Density',ylab='Length')
-lines(dens_t$y,dens_t$x,type="l",ylim=Ylim,lty="dashed")
-legend("topright",c("Theoretical","Observed"),lty=c("dashed","solid"),bty="n")
+length_dens(N_AGE=n_age,both=TRUE)
+
+}
+
+# #####################################################################
+# Sixth page
+
+page6 <- function(){
+
+n_age_years <- list()
+n_age_years[[1]] <- n_age
+input_sd <- 0.3
+age1 <- vector()
+age1 <- c(age1,80)
+for(y in seq(2,44,1)){
+	M <- 0.15
+	n_age_y <- data.frame(age=rep(NA,30),n_age=rep(NA,30))
+	n_age_y$age <- seq(1,30,1)
+	n_age_y[1,"n_age"] <- 80*exp(rnorm(1,mean=0,sd=input_sd))
+	age1 <- c(age1,n_age_y[1,"n_age"])
+	for(i in seq(2,30,1)){
+		n_age_y[i,"n_age"] <- n_age_y[i-1,"n_age"]*exp(-M)
+	}
+	n_age_years[[y]] <- n_age_y
+}
+
+for(y in seq(1,44,1)){
+
+n_age_y <- n_age_years[[y]]
+
+Age <- vector()
+for(a in n_age_y$age){
+	Age <- c(Age,rep(n_age_y[a,"age"],ceiling(n_age_y[a,"n_age"])))
+}
+
+layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
+
+# ---------------------------
+# top left
+
+hist(Age,breaks=30,xlim=Xlim,ylim=range(0,300),main="")
+
+# ---------------------------
+# top right
+
+plot(seq(1,44,1),c(age1[seq(1,y,1)],rep(NA,44-y)),type='l',xlab="Years",ylab="Age-1 recruitment",ylim=range(age1))
+
+# --------------------------
+# bottom left
+
+curve()
+par( new=TRUE )
+plot(range(selectivity(Yfit)),range(Yfit),type="n", xaxt="n",yaxt="n", xlab="", ylab="" )
+lines(selectivity(Yfit),Yfit, xaxt="n",yaxt="n", xlab="", ylab="" )
+axis(3,at=pretty(c(0,1)),labels=pretty(c(0,1)),las=1)
+
+# -------------------------
+# bottom right
+
+length_dens(N_AGE=n_age_y,both=TRUE)
+
+}
 
 }
 
@@ -254,5 +348,7 @@ dev.off()
 jpeg("Page 5.jpeg")
 page5()
 dev.off()
+
+saveGIF(page6())
 
 }
