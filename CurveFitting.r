@@ -3,12 +3,17 @@
 library(animation)
 
 M <- 0.15
-n_age <- data.frame(age=rep(NA,30),n_age=rep(NA,30))
-n_age$age <- seq(1,30,1)
-n_age[1,"n_age"] <- 80
+n_age <- rep(NA,30)
+n_age[1] <- 80
 for(i in seq(2,30,1)){
-	n_age[i,"n_age"] <- ceiling(n_age[i-1,"n_age"]*exp(-M))
+	n_age[i] <- ceiling(n_age[i-1]*exp(-M))
 }
+
+L_INF=205
+K=0.1
+T0=0.45
+CV=0.1
+N_AGE=n_age
 
 CurveFitting <- function(L_INF=205,K=0.1,T0=0.45,CV=0.1,N_AGE=n_age){
 
@@ -16,8 +21,8 @@ breaks <- 30
 
 # age
 Age <- vector()
-for(a in n_age$age){
-	Age <- c(Age,rep(n_age[a,"age"],ceiling(n_age[a,"n_age"])))
+for(a in seq(1,30,1)){
+	Age <- c(Age,rep(a,ceiling(n_age[a])))
 }
 
 # define von bert function
@@ -47,7 +52,7 @@ length_dens <- function(N_AGE=n_age,both=TRUE){
 TheoreticalLengthDist <- vector()
 for(i in seq(1,length(Xfit),1)){
 	X <- Xfit[i]
-	TheoreticalLengthDist <- c(TheoreticalLengthDist,rnorm(N_AGE[i,"n_age"]*10 + 1,mean=Von_Bert(X),sd=CV*Von_Bert(X)))
+	TheoreticalLengthDist <- c(TheoreticalLengthDist,rnorm(N_AGE[i]*10 + 1,mean=Von_Bert(X),sd=CV*Von_Bert(X)))
 }
 dens_t <- density(TheoreticalLengthDist)
 
@@ -55,7 +60,7 @@ dens_t <- density(TheoreticalLengthDist)
 ObservedLengthDist <- vector()
 for(i in seq(1,length(Xfit),1)){
 	X <- Xfit[i]
-	LenDis_i <- rnorm(N_AGE[i,"n_age"]*10 + 1,mean=Von_Bert(X),sd=CV*Von_Bert(X))
+	LenDis_i <- rnorm(N_AGE[i]*10 + 1,mean=Von_Bert(X),sd=CV*Von_Bert(X))
 	LenSel_i <- vector()
 	for(l in LenDis_i){
 		LenSel_i <- c(LenSel_i,rep(l,floor(1000*selectivity(l))))
@@ -87,8 +92,8 @@ curve <- function(){
 
 	# age
 	Age <- vector()
-	for(a in n_age$age){
-		Age <- c(Age,rep(n_age[a,"age"],ceiling(n_age[a,"n_age"])))
+	for(a in seq(1,30,1)){
+		Age <- c(Age,rep(a,ceiling(n_age[a])))
 	}
 
 	set.seed(5431)
@@ -106,9 +111,6 @@ curve <- function(){
 
 		mean <- Von_Bert(X)
 		sd <- CV*Von_Bert(X)
-		Von_Bert(X)
-		X
-
 
 		Yran <- c(mean - 4*sd, mean + 4*sd)
 		Ypon <- seq(from=min(Yran),to=max(Yran),length=30)
@@ -269,30 +271,28 @@ length_dens(N_AGE=n_age,both=TRUE)
 
 page6 <- function(){
 
-n_age_years <- list()
-n_age_years[[1]] <- n_age
+
+n_age_years <- as.data.frame(matrix(NA,nrow=30,ncol=44))
 input_sd <- 0.3
 age1 <- vector()
 age1 <- c(age1,80)
+n_age_years[1,] <- 80*c(1,exp(rnorm(length(n_age_years)-1,mean=0,sd=input_sd)))
+# year 1
+for(i in seq(2,30,1)){
+		n_age_years[i,1] <- n_age_years[i-1,1]*exp(-M)
+}
+# years 2 to 44
 for(y in seq(2,44,1)){
-	M <- 0.15
-	n_age_y <- data.frame(age=rep(NA,30),n_age=rep(NA,30))
-	n_age_y$age <- seq(1,30,1)
-	n_age_y[1,"n_age"] <- 80*exp(rnorm(1,mean=0,sd=input_sd))
-	age1 <- c(age1,n_age_y[1,"n_age"])
 	for(i in seq(2,30,1)){
-		n_age_y[i,"n_age"] <- n_age_y[i-1,"n_age"]*exp(-M)
+		n_age_years[i,y] <- n_age_years[i-1,y-1]*exp(-M)
 	}
-	n_age_years[[y]] <- n_age_y
 }
 
 for(y in seq(1,44,1)){
 
-n_age_y <- n_age_years[[y]]
-
 Age <- vector()
-for(a in n_age_y$age){
-	Age <- c(Age,rep(n_age_y[a,"age"],ceiling(n_age_y[a,"n_age"])))
+for(a in seq(1,30,1)){
+	Age <- c(Age,rep(a,ceiling(n_age_years[a,y])))
 }
 
 layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
@@ -319,7 +319,7 @@ axis(3,at=pretty(c(0,1)),labels=pretty(c(0,1)),las=1)
 # -------------------------
 # bottom right
 
-length_dens(N_AGE=n_age_y,both=TRUE)
+length_dens(N_AGE=n_age_years[,y],both=TRUE)
 
 }
 
