@@ -1,25 +1,23 @@
-# setwd("/home/jim/Dropbox/REM/tasks/scal_lenghs")
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
 library(animation)
 
+# set mortality rate
 M <- 0.15
+
+# define initial numbers at age vector
 n_age <- rep(NA,30)
 n_age[1] <- 80
 for(i in seq(2,30,1)){
 	n_age[i] <- ceiling(n_age[i-1]*exp(-M))
 }
 
-L_INF=205
-K=0.1
-T0=0.45
-CV=0.1
-N_AGE=n_age
-
+# define function CurveFitting
 CurveFitting <- function(L_INF=205,K=0.1,T0=0.45,CV=0.1,N_AGE=n_age){
 
 breaks <- 30
 
-# age
+# age vector from numbers at age data
 Age <- vector()
 for(a in seq(1,30,1)){
 	Age <- c(Age,rep(a,ceiling(n_age[a])))
@@ -30,13 +28,13 @@ Von_Bert <- function(t){
 	return(L_INF*(1-exp(-K*(t-T0))))
 }
 
-# need to defined this selectivity function
+# need to define this selectivity function
 selectivity <- function(t){
 	1/(1 + 1*exp(-0.5*(t - 81)))
 }
 
 # set fitted x values and y values
-Xfit <- seq(min(Age),max(Age),length=breaks)
+Xfit <- seq(min(Age),max(Age),length=length(unique(Age)))
 Yfit <- Von_Bert(Xfit)
 
 # set y limits
@@ -46,6 +44,8 @@ Xlim <- range(Xfit)
 # age histogram
 h <- hist(Age,breaks=c(0,Xfit),plot=FALSE)
 
+# define length_dens function
+# creates a plot of length density given numbers at age data
 length_dens <- function(N_AGE=n_age,both=TRUE){
 
 # calculate theoretical length distribution
@@ -69,8 +69,11 @@ for(i in seq(1,length(Xfit),1)){
 }
 dens_o <- density(ObservedLengthDist)
 
+# if both == TRUE, plots both observed and theorertical length dist
+# otherwise just plots theoretical length dist
 if(both == TRUE){
 
+# observed and theoretica
 plot(dens_o$y,dens_o$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y,0.015),
 	xlab='Density',ylab='Length')
 lines(dens_t$y,dens_t$x,type="l",ylim=Ylim,lty="dashed")
@@ -78,6 +81,7 @@ legend("topright",c("Theoretical","Observed"),lty=c("dashed","solid"),bty="n")
 
 } else {
 
+# theoretical only
 plot(dens_t$y,dens_t$x,type="l",ylim=Ylim,,xlim=range(0,dens_o$y,dens_t$y,0.015),
 	xlab='Density',ylab='Length',lty="dashed")
 legend("topright",c("Theoretical"),lty=c("dashed"),bty="n")
@@ -88,6 +92,8 @@ legend("topright",c("Theoretical"),lty=c("dashed"),bty="n")
 
 # #####################################################################################
 
+# defined curve() function
+# function creates plot of length dist vs. age
 curve <- function(){
 
 	# age
@@ -200,7 +206,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim,xlab='Age',main="",ylim=range(0,300))
+hist(Age,breaks=c(0,Xfit),xlim=Xlim,xlab='Age',main="",ylim=range(0,160))
 
 # --------------------------
 # bottom left
@@ -224,7 +230,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim,xlab='Age',main='',ylim=range(0,300))
+hist(Age,breaks=c(0,Xfit),xlim=Xlim,xlab='Age',main='',ylim=range(0,160))
 
 # --------------------------
 # bottom left
@@ -248,7 +254,7 @@ layout(matrix(c(1,4,2,3), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim,main="",ylim=range(0,300))
+hist(Age,breaks=c(0,Xfit),xlim=Xlim,main="",ylim=range(0,160))
 
 # --------------------------
 # bottom left
@@ -274,9 +280,8 @@ page6 <- function(){
 
 n_age_years <- as.data.frame(matrix(NA,nrow=30,ncol=44))
 input_sd <- 0.3
-age1 <- vector()
-age1 <- c(age1,80)
 n_age_years[1,] <- 80*c(1,exp(rnorm(length(n_age_years)-1,mean=0,sd=input_sd)))
+age1 <- n_age_years[1,]
 # year 1
 for(i in seq(2,30,1)){
 		n_age_years[i,1] <- n_age_years[i-1,1]*exp(-M)
@@ -300,12 +305,12 @@ layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
 # ---------------------------
 # top left
 
-hist(Age,breaks=30,xlim=Xlim,ylim=range(0,300),main="")
+hist(Age,breaks=c(0,Xfit),xlim=Xlim,ylim=range(0,160),main="")
 
 # ---------------------------
 # top right
 
-plot(seq(1,44,1),c(age1[seq(1,y,1)],rep(NA,44-y)),type='l',xlab="Years",ylab="Age-1 recruitment",ylim=range(age1))
+plot(seq(1,44,1),c(age1[seq(1,y,1)],rep(NA,44-y)),type='l',xlab="Years",ylab="Age-1 recruitment",ylim=c(0,160))
 
 # --------------------------
 # bottom left
