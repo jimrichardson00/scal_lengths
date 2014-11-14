@@ -104,7 +104,7 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
         # Settings to format and output aggregated data
         # indices of the fisheries to sum over in aggregating length comps
-        idxFisheries <- c(3,4,6)
+        idxFisheries <- c(3,4,5,6)
 
         # The ADMB format is m for all fisheries, f for all fisheries, 
         # and c for all fisheries
