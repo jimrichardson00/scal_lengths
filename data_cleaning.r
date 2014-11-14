@@ -1,7 +1,7 @@
 # data cleaning code
 
 # sets working directory
-setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+# setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
 
 # replaced RV_4VWX column in Number(gender)Measured.txt, with RV_4VWX column in Number(gender)Measured_copy.txt
 source("replace_RV_4VWX_col.r")

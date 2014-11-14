@@ -23,7 +23,7 @@ samples_c <- read.table("NumberCombinedMeasured.txt",header=T)
 # Column names will be used later to grab data
 names(samples_m) <- c("Year",allNames)
 names(samples_f) <- c("Year",allNames)
-names(samples_c) <- c("Year",allNames)
+# names(samples_c) <- c("Year",allNames)
 
 # read in the catch data
 scaHalCatch_Index_lb5_Sept152014 <- lisread("scaHalCatch_Index_lb5_ Sept152014 .dat.txt")
@@ -48,8 +48,6 @@ for(i in seq(from=1,to=length(names_cat),by=1)){
 
 # set new names on landCatchMatrix to be in line with the names in the sample data
 names(landCatchMatrix) <- names_sam
-
-head(landCatchMatrix)
 
 # set missing data to NA
 landCatchMatrix[landCatchMatrix == -1] <- NA

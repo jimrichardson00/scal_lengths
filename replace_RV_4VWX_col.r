@@ -11,6 +11,7 @@ NumberCombinedMeasured <- read.table("NumberCombinedMeasured.txt",header=TRUE)
 
 # pulls out names from NumberCombinedMeasured, only one with names for some reason
 names <- names(NumberCombinedMeasured)
+# names
 
 # reads in Number(sex)Measured_copy.txt
 NumberMaleMeasured_copy <- read.table("NumberMaleMeasured copy.txt",header=TRUE)
