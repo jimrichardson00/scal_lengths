@@ -116,9 +116,11 @@ library(xtable)
 print(xtable(head(lengthComps_c), caption = "Example Sample data table"),size="\\tiny")
 @
 
-There is one such table for each fishery, and each table is labelled with a line at the top with a ``\#'', a space, and the fishery name. (OneF of the following:  RV\_4VWX, HS, LL\_NAFO3\_Obs, LL\_NAFO4\_Obs, OT\_NAFO3\_Obs, OT\_NAFO4\_Obs).
+There is one such table for each fishery, and each table is labelled with a line at the top with a ``\#'', a space, the fishery name (RV\_4VWX, HS, LL\_NAFO3\_Obs, LL\_NAFO4\_Obs,.. etc.) and a suffix ``\_m'', ``\_f'', ``\_c'', if the file is for males, females or combined respectively.
 
-Once again, columns in the table are seperated by spaces, and lines are seperated by new lines. An example of one such file may be:
+Once again, columns in the table are seperated by spaces, and lines are seperated by new lines. 
+
+An example of one such file for ``combined'' is as follows:
 
 \lstinputlisting[firstline=1,lastline=20]{.EXAMPLE_lengthComps_c.txt}
 

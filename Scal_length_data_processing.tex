@@ -84,7 +84,7 @@ This subsection details the input data needed and the format of the files. There
 This data contains information on the numbers of fish sampled for each year, fishery, and sex. There are three files; males, females and combined. Each file contains a table of the form:
 
 % latex table generated in R 3.1.2 by xtable 1.7-4 package
-% Mon Dec  1 11:59:32 2014
+% Mon Dec  1 12:32:28 2014
 \begin{table}[ht]
 \centering
 {\tiny
@@ -124,7 +124,7 @@ The name of the input file can also be changed, but the new name must be updated
 This data contains information of the proportion of fish sampled at each length class. More specifically, for each fishery it shows the proportion of fish sampled at each length class on each year. The total for any given year is $1$. Once again, there are three files; males, females and combined. Each file contains a number of tables of the form:
 
 % latex table generated in R 3.1.2 by xtable 1.7-4 package
-% Mon Dec  1 11:59:32 2014
+% Mon Dec  1 12:32:28 2014
 \begin{table}[ht]
 \centering
 {\tiny
@@ -143,9 +143,11 @@ This data contains information of the proportion of fish sampled at each length 
 }
 \caption{Example Sample data table} 
 \end{table}
-There is one such table for each fishery, and each table is labelled with a line at the top with a ``\#'', a space, and the fishery name. (OneF of the following:  RV\_4VWX, HS, LL\_NAFO3\_Obs, LL\_NAFO4\_Obs, OT\_NAFO3\_Obs, OT\_NAFO4\_Obs).
+There is one such table for each fishery, and each table is labelled with a line at the top with a ``\#'', a space, the fishery name (RV\_4VWX, HS, LL\_NAFO3\_Obs, LL\_NAFO4\_Obs,.. etc.) and a suffix ``\_m'', ``\_f'', ``\_c'', if the file is for males, females or combined respectively.
 
-Once again, columns in the table are seperated by spaces, and lines are seperated by new lines. An example of one such file may be:
+Once again, columns in the table are seperated by spaces, and lines are seperated by new lines. 
+
+An example of one such file for ``combined'' is as follows:
 
 \lstinputlisting[firstline=1,lastline=20]{.EXAMPLE_lengthComps_c.txt}
 
