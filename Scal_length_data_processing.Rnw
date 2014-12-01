@@ -1,0 +1,184 @@
+% Write up of the data processing of the scal lengths files
+
+% Required input:
+
+% --------------------------------------------------------
+% sample data
+
+% files showing the sample data. there are 3 files here, males, females and combined.
+
+% files show the numbers of fish measured for the length prop data. this is important because we weight by this later.
+
+% each file is of the form:
+
+% sample data of the form
+% Year, RV, HS, LL ..
+% 1970 ..
+% 1971 ..
+
+% example of possible file names:
+
+% sample_m
+% sample_f
+% sample_c
+
+% ---------------------------------------------------------
+% length prop data
+
+% data showing the proportion at length.
+% there are three files here, males, females and combined
+
+% files show the proportion of fish at each length, for each year, eg.
+
+% 				1970						1971
+% 	0-5cm		prop of fish at 0-5cm		..
+% 	5-10cm		prop of fish at 10-15cm		..
+% 	10-15cm
+
+% so the total of each column is 1. There is one such table for each fishery.
+
+% The order of the fishery does not matter, as long as it has the correct names. The names are RV, HS, LL,.. etc.
+
+
+% --------------------------------------------------------
+% catch data
+
+% data showing the catch for each year, and each fishery. there is only one file here, since the catch is not split up by gender. the file is a table of the form:
+
+% 		RV							HS 		LL	..
+% 1970	landed catch (in tonnes)
+% 1971
+% 1972
+
+% again, the order doesn't matter, as long as the names are used consistently
+
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{cite}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{listings}
+
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\section{Length data processing}
+
+\subsection{Introduction}
+
+\subsection{Input files}
+
+This subsection details the input data needed and the format of the files. There are three types of data required. 
+
+\begin{itemize}
+\item Sample data
+\item Proportion at length data
+\item Catch data
+\end{itemize}
+
+\subsubsection{Sample data}
+
+This data contains information on the numbers of fish sampled for each year, fishery, and sex. There are three files; males, females and combined. Each file contains a table of the form:
+
+<<label=tab1,echo=FALSE,results=tex>>=
+NumberCombinedMeasured <- read.table("NumberCombinedMeasured.txt",header=TRUE)
+NumberCombinedMeasured <- NumberCombinedMeasured[,c("Year","RV_4VWX", "HS", "LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")]
+library(xtable)
+print(xtable(head(NumberCombinedMeasured), caption = "Example Sample data table"),size="\\tiny")
+@
+
+The files should be formatted as ``.txt'' files with a space seperating each column of the table, and a new line seperating each row of the table. An example is in the master folder under: ``NumbersCombinedMeasured.txt''.
+
+The columns can be in any order but the following names must be used consistently: 
+
+\begin{itemize}
+\item ``Year''
+\item ``RV\_4VWX''
+\item ``HS''
+\item ``LL\_NAFO3\_Obs''
+\item ``LL\_NAFO4\_Obs''
+\item ``OT\_NAFO3\_Obs''
+\item ``OT\_NAFO4\_Obs''
+\end{itemize}
+
+The name of the input file can also be changed, but the new name must be updated in the file ``Filenames\_control.r''.
+
+\subsubsection{Proportion at length data}
+
+This data contains information of the proportion of fish sampled at each length class. More specifically, for each fishery it shows the proportion of fish sampled at each length class on each year. The total for any given year is $1$. Once again, there are three files; males, females and combined. Each file contains a number of tables of the form:
+
+<<label=tab1,echo=FALSE,results=tex>>=
+lengthComps_c <- read.table(".EXAMPLE_lenObsProp_c.txt",header=TRUE,skip=1,nrows=10)
+names(lengthComps_c) <- c("1971", "1972", "1973", "..", "2013")
+library(xtable)
+print(xtable(head(lengthComps_c), caption = "Example Sample data table"),size="\\tiny")
+@
+
+There is one such table for each fishery, and each table is labelled with a line at the top with a ``\#'', a space, and the fishery name. (OneF of the following:  RV\_4VWX, HS, LL\_NAFO3\_Obs, LL\_NAFO4\_Obs, OT\_NAFO3\_Obs, OT\_NAFO4\_Obs).
+
+Once again, columns in the table are seperated by spaces, and lines are seperated by new lines. An example of one such file may be:
+
+\lstinputlisting[firstline=1,lastline=20]{.EXAMPLE_lengthComps_c.txt}
+
+Once again, the order does not matter, as long as the fishery labels are consistent. The files can be given any name, as long as it is set in the file ``Filenames\_control.r''.
+
+
+\subsection{Step 1: Weigh catch at length data by catch and sample size}
+
+We aggregate the proportion at length data for the commercial fisheries into $1$, $2$ or $4$ fisheries, depending our needs.
+
+\begin{itemize}
+\item Case 1 - 4 fisheries
+\item Case 2 - 2 fisheries
+\item Case 3 - 1 fishery
+\end{itemize}
+
+Case 1 is quite simple, since there are already 4 fisheries. There is nothing to aggregate, so there is no need to calculate weights, and we can leave the proportion at length files as is.
+
+Case 2 is a little more complicated. We want to aggregate the length proportion data from each of $4$ commercial fisheries into $1$. We also want to give a higher weight to fisheries with higher catch and fisheries with higher sampling effort. First some definitions. Let $p_{g,a,s,y,l}$ be:
+
+\begin{equation}
+p_{s,l,y,g,a} = \text{\parbox{11cm}{The proportion of sex $s$ fish of length $l$ sampled for year $y$,
+                      sampled for gear type $g$ and area $a$.}}
+\end{equation}
+
+Then we sum over the gear type and area to obtain a new proportion at length $\tilde{p}_{s,l,y}$ representing all $4$ fisheries, in the following manner:
+
+\begin{equation}
+\tilde{p}_{s,l,y} = \sum_{g,a} w_{s,y,g,a} p_{s,l,y,g,a}
+\end{equation}
+
+where the weights $w_{s,y,g,a}$ are calculated as:
+
+\begin{equation}
+w_{s,y,g,a} = \frac{ C_{y,g,a} S_{s,y,g,a} }{\sum_{g,a} C_{y,g,a} S_{s,y,g,a} }
+\end{equation}
+
+where:
+
+\begin{align}
+C_{y,g,a} &= \text{Total catch (tonnes) in year $y$, gear type $g$ and area $a$} \\
+S_{s,y,g,a} &= \text{Number of fish of sex $s$ sampled in year $y$, gear type $g$ and area $a$}
+\end{align}
+
+Note that the weights sum to $1$, i.e.
+
+\begin{align}
+\sum_{g,a} w_{s,y,g,a} = 1
+\end{align}
+
+Case 3 is even more complicated. This time we want to aggregate the length proportion data from each of $4$ commercial fisheries into $2$ fisheries, based on gear type. Again we also want to give a higher weight to fisheries with higher catch and fisheries with higher sampling effort. We calculate $\bar{p}_{s,y,g}$ as:
+
+\begin{equation}
+\bar{p}_{s,l,y,g} = \sum_{a} w_{s,y,a} p_{s,l,y,g,a}
+\end{equation}
+
+where the weights $w_{s,y,a}$ are calculated as:
+
+\begin{equation}
+w_{s,y,a} = \frac{ C_{y,g,a} S_{s,y,g,a} }{\sum_{a} C_{y,g,a} S_{s,y,g,a} }
+\end{equation}
+
+\end{document}
