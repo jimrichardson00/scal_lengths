@@ -1,4 +1,8 @@
-# sets working directory
+# -----------------------------------------------------------
+# Code to create aggregate proportion at length data from 4 fisheries into 1 (weighed by catch and sample size), and output data in a formate that can be read by ADMB code.
+# Author: Jim Richardson
+
+# Set the working directory, (set this to a local folder on your computer)
 setwd("/home/jim/Dropbox/REM/Tasks/scal_lengths")
 
 # sources mseRtools.r, needed for lisread function()
@@ -7,46 +11,17 @@ source("mseRtools.r")
 # sources df_to_dat.r, needed for df_to_dat function
 source("df_to_dat.r")
 
-# The following names should be used consistently throughout the various data files,
-# ADMB, and R code: 
-# Year RV_4VWX HS LL_NAFO3_Obs LL_NAFO4_Obs OT_NAFO3_Obs OT_NAFO4_Obs LL_PS OT_PS
-# each of the three sample types has it's own lengthComp file with suffix _m, _f,
-# or _c
+# The following names should be used consistently throughout the various data files:
 allNames <- c("RV_4VWX", "HS", "LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")
+
 
 # Read the sample data
 samples_m <- read.table("NumberMaleMeasured.txt",    header=T)
 samples_f <- read.table("NumberFemaleMeasured.txt",  header=T)
 samples_c <- read.table("NumberCombinedMeasured.txt",header=T)
 
-# Column names will be used later to grab data
-names(samples_m) <- c("Year",allNames)
-names(samples_f) <- c("Year",allNames)
-# names(samples_c) <- c("Year",allNames)
-
-# read in the catch data
-scaHalCatch_Index_lb5_Sept152014 <- lisread("scaHalCatch_Index_lb5_ Sept152014 .dat.txt")
-# pull out the landed catch matrix
-landCatchMatrix <- scaHalCatch_Index_lb5_Sept152014[[2]]
-landCatchMatrix <- as.data.frame(landCatchMatrix)
-
-# set the names for the landed catch matrix
-names_cat <- "TimeStep Year X3_long.line X3_other X3_otter.trawl X4_long.line X4_other X4_otter.trawl rv4VWX rv3NPO.1 rv3NPO.2 rv3NPO.3 hal.surv ci"
-names_cat <- strsplit(names_cat," ")[[1]]
-
-# create a copy of names_cat, will relabel the names with the names from the sample data for consistency
-names_sam <- names_cat
-for(i in seq(from=1,to=length(names_cat),by=1)){
-    if(names_cat[i] == "X3_long.line"){names_sam[i] <- "LL_NAFO3_Obs"}
-    else if(names_cat[i] == "X3_otter.trawl"){names_sam[i] <- "OT_NAFO3_Obs"}
-    else if(names_cat[i] == "X4_long.line"){names_sam[i] <- "LL_NAFO4_Obs"}
-    else if(names_cat[i] == "X4_otter.trawl"){names_sam[i] <- "OT_NAFO4_Obs"}
-    else if(names_cat[i] == "rv4VWX"){names_sam[i] <- "RV_4VWX"}
-    else if(names_cat[i] == "hal.surv"){names_sam[i] <- "HS"}
-}
-
-# set new names on landCatchMatrix to be in line with the names in the sample data
-names(landCatchMatrix) <- names_sam
+# Read in the catch data
+landCatchMatrix <- read.table("landCatchMatrix.txt")
 
 # set missing data to NA
 landCatchMatrix[landCatchMatrix == -1] <- NA
@@ -55,28 +30,35 @@ landCatchMatrix[landCatchMatrix == -1] <- NA
 landCatchMatrix$OT_NAFO3_Obs <- landCatchMatrix$OT_NAFO3_Obs + landCatchMatrix$X3_other
 landCatchMatrix$OT_NAFO4_Obs <- landCatchMatrix$OT_NAFO4_Obs + landCatchMatrix$X4_other
 
-# The original length comps all had different dimensions, so these give
-# the corresponding start rows in the final 54 x 44 matrix
-firstRow <- c(2,5,1,1,1,1)
-lastRow  <- c(36,42,54,54,54,54)
+# Set the start and end rows in each length prop data file. For example, the full range of length classes is 0-5cm, 5-10cm,... 265-270cm (54 rows). But the data may only include 20cm-210cm (37 rows) since there were no fish measured outside this range.
+# The start and end rows are different for each fishery, set them here
+firstRow <- rep(NA,6) ; names(firstRow) <- allNames
+lastRow <- rep(NA,6) ; names(lastRow) <- allNames
 
-# creates empty list, scal_length, will write this to .dat file
+firstRow["RV_4VWX"] <- 2 ; lastRow["RV_4VWX"]  <- 36
+firstRow["HS"] <- 5 ; lastRow["HS"] <- 42
+firstRow["LL_NAFO3_Obs"] <- 1 ; lastRow["LL_NAFO3_Obs"] <- 54
+firstRow["LL_NAFO4_Obs"] <- 1 ; lastRow["LL_NAFO4_Obs"] <- 54
+firstRow["OT_NAFO3_Obs"] <- 1 ; lastRow["OT_NAFO3_Obs"] <- 54
+firstRow["OT_NAFO4_Obs"] <- 1 ; lastRow["OT_NAFO4_Obs"] <- 54
+
+# Creates empty list, scal_length, will write this to .dat file
 scal_lengths <- list()
 
-# sexes; male, female and combined
+# Sexes; male, female and combined
 sexes <- c("m","f","c")
 
-# fisheries; commercial fishery, RV survey, halibut survey
+# Fisheries; commercial fishery, RV survey, halibut survey
 # 1 - Commercial fishery
 # 2 - RV
 # 3 - HS
-fisheries <- c(1,2,3)
+fisheries <- c("Cf","RV_4VWX","HS")
 
 # define expanded grid (each fishery, sex combination)
 grid_FS <- expand.grid(fisheries,sexes)
 names(grid_FS) <- c("fishery","sex")
 
-# check the order is the same in each lengthComps file
+# Check the order is the same in each lengthComps file
 for(s in sexes){
     lengths <- lisread(paste("lengthComps_",s,".txt",sep=""))
     for(name in names(lengths)){
@@ -84,16 +66,21 @@ for(s in sexes){
     }
 }
 
+# Cycles through each fishery, sex combination. If fishery = Cf, aggregates 4 commercial fisheries together
+sf <- 1
 for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
 
+    # Set sex and fishery, s and f
     s <- grid_FS[sf,"sex"]
     f <- grid_FS[sf,"fishery"]
 
+    # Set name to be written to .dat file
     name_sf <- paste("lenObsProp_",s,f,sep="")
 
+    # Read in prop at length file for sex s.
     lengths <- lisread(paste("lengthComps_",s,".txt",sep=""))
 
-    # set sample according to sex
+    # Set sample according to sex
     if(s == "m"){
         samples <- samples_m
     } else if (s == "f"){
@@ -103,46 +90,42 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
     }
 
     # cycles through fisheries
-    if(f == 2){
-        scal_lengths[[name_sf]] <- lengths[[1]]
-    } else if (f == 3){
-        scal_lengths[[name_sf]] <- lengths[[2]]
-    } else if (f == 1){
-
-        # Pool length comps across fisheries:
-        #   i. first re-scale back up to original samples, pal*numberMeasured 
-        #   ii. sum numbers measured in each length class over fisheries
-        #  iii. get the total sample size
-        #   iv. re-normalize length comps back to proportions-at-length
+    # If RV or HS, no need to aggregate, writes file as is to scal_lengths list
+    if(f == "RV_4VWX"){
+        scal_lengths[[name_sf]] <- lengths[[paste("RV_4VWX_",s,sep='')]]
+    } else if (f == "HS"){
+        scal_lengths[[name_sf]] <- lengths[[paste("HS_",s,sep='')]]
+    } 
+    # if f = Cf, aggregates 4 commercial fisheries into 1.
+    else if (f == "Cf"){
 
         # Settings to format and output aggregated data
         # indices of the fisheries to sum over in aggregating length comps
-        idxFisheries <- c(3,4,5,6)
+        commercial_fisheries <- c("LL_NAFO3_Obs", "LL_NAFO4_Obs", "OT_NAFO3_Obs", "OT_NAFO4_Obs")
 
-        # The ADMB format is m for all fisheries, f for all fisheries, 
-        # and c for all fisheries
-        idxNames <- allNames(idxFisheries)
+        # Sets empty prop at length matrix to be filled later
         nlens    <- matrix(0,nrow=54,ncol=nrow(samples))
 
-        for( idxF in idxFisheries )
+        # cycles through fisheries that we will aggregate over
+        for( comm_f in commercial_fisheries )
         {
-            # get number measured for all years in this fishery
-            nMeas <- samples[ ,allNames[idxF] ]
+            # Get number measured for all years in this fishery
+            nMeas <- samples[, comm_f]
 
-            # get catch data for all years in this fishery
-            nCatch <- landCatchMatrix[,allNames[idxF]]
+            # Get catch data for all years in this fishery
+            nCatch <- landCatchMatrix[, comm_f]
 
-            # get the pal for this fishery: SET LENGTH DATA!!
-            lens  <- lengths[[idxF]]
-            # get the dimensions
-            fRow  <- firstRow[idxF]
-            lRow  <- lastRow[idxF]
+            # Get the prop at length data for this fishery
+            lens  <- lengths[[paste(comm_f,"_",s,sep='')]]
 
-            # find the row/col indices of missing values
+            # Get the dimensions of the prop at length data (start length class, end length class for this fishery)
+            fRow  <- firstRow[comm_f]
+            lRow  <- lastRow[comm_f]
+
+            # Set missing variables as NA
             idxNA <- which( lens==-1, arr.ind=T )
-            # convert -1 to NA
             lens[ idxNA ] <- NA
-            #browser()
+
             # multiply props and nMeas to get totals measured
             # by length and accumulate over fisheries
             for( i in 1:ncol(lens) )
@@ -163,6 +146,8 @@ for(sf in seq(from=1,to=nrow(grid_FS),by=1)){
         }
         # replaces missing data with -1
         plens[ is.na(plens)] <- -1
+
+gi        name_sf
 
         # adds table to list file
         scal_lengths[[name_sf]] <- as.data.frame(plens)
