@@ -1,9 +1,8 @@
 # sets working directory
-setwd("/home/jim/Dropbox/REM/tasks/scal_lengths")
+setwd("/home/jim/Dropbox/REM/Tasks/scal_lengths")
 
 # sources mseRtools.r, needed for lisread function()
 source("mseRtools.r")
-# findInterval(x,vec) returns the index of vec containing the closest match to x
 
 # sources df_to_dat.r, needed for df_to_dat function
 source("df_to_dat.r")
